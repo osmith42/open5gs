@@ -112,19 +112,3 @@ void nssf_sbi_close(void)
 {
     ogs_sbi_server_stop_all();
 }
-
-bool nssf_nnrf_nfm_send_nf_register(ogs_sbi_nf_instance_t *nf_instance)
-{
-    ogs_sbi_request_t *request = NULL;
-    ogs_sbi_client_t *client = NULL;
-
-    ogs_assert(nf_instance);
-    client = nf_instance->client;
-    ogs_assert(client);
-
-    request = nssf_nnrf_nfm_build_register();
-    ogs_expect_or_return_val(request, false);
-
-    return ogs_sbi_client_send_request(
-            client, client->cb, request, nf_instance);
-}

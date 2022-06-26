@@ -110,7 +110,8 @@ void bsf_nf_state_will_register(ogs_fsm_t *s, bsf_event_t *e)
         ogs_timer_start(nf_instance->t_registration_interval,
             ogs_app()->time.message.sbi.nf_register_interval);
 
-        ogs_assert(true == bsf_nnrf_nfm_send_nf_register(nf_instance));
+        ogs_assert(true == ogs_nnrf_nfm_send_nf_register(
+                    nf_instance, bsf_nnrf_nfm_build_register));
         break;
 
     case OGS_FSM_EXIT_SIG:
@@ -166,7 +167,8 @@ void bsf_nf_state_will_register(ogs_fsm_t *s, bsf_event_t *e)
             ogs_timer_start(nf_instance->t_registration_interval,
                 ogs_app()->time.message.sbi.nf_register_interval);
 
-            ogs_assert(true == bsf_nnrf_nfm_send_nf_register(nf_instance));
+            ogs_assert(true == ogs_nnrf_nfm_send_nf_register(
+                        nf_instance, bsf_nnrf_nfm_build_register));
             break;
 
         default:
