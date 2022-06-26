@@ -34,7 +34,7 @@ int scp_initialize()
     scp_context_init();
     scp_event_init();
 
-    rv = ogs_sbi_context_parse_config("scp", "nrf");
+    rv = ogs_sbi_context_parse_config("scp", "nrf", NULL);
     if (rv != OGS_OK) return rv;
 
     rv = scp_context_parse_config();

@@ -249,7 +249,8 @@ typedef struct ogs_sbi_nf_info_s {
 void ogs_sbi_context_init(void);
 void ogs_sbi_context_final(void);
 ogs_sbi_context_t *ogs_sbi_self(void);
-int ogs_sbi_context_parse_config(const char *local, const char *remote);
+int ogs_sbi_context_parse_config(
+        const char *local, const char *nrf, const char *scp);
 
 ogs_sbi_nf_instance_t *ogs_sbi_nf_instance_add(void);
 void ogs_sbi_nf_instance_set_id(ogs_sbi_nf_instance_t *nf_instance, char *id);

@@ -88,6 +88,43 @@ logger:
 #          l_onoff: true
 #          l_linger: 10
 #
+#  <Next hop SCP>
+#
+#  o Next hop SCP Server(https://127.0.1.11:7777)
+#  scp:
+#      sbi:
+#        - addr: 127.0.1.10
+#          port: 7777
+#      next:
+#          sbi:
+#            - addr: 127.0.1.11
+#              port: 7777
+#
+#  <Discovery>
+#
+#  o NF Discovery and Selection
+#    for indirect communication with Delegated Discovery;
+#
+#  o delegated:
+#    o auto: (Default)
+#            Use next-hop SCP if next-hop SCP avaiable. Otherwise NRF is used.
+#            => App fails if both next-hop SCP and NRF are unavailable.
+#    o yes:  Use next-hop SCP always.
+#            => App fails if no next-hop SCP available.
+#    o no:   Don't use next-hop SCP server.
+#            => App fails if no NRF available.
+#
+#  scp:
+#      sbi:
+#        - addr: 127.0.1.10
+#          port: 7777
+#      next:
+#          sbi:
+#            - addr: 127.0.1.11
+#              port: 7777
+#          discovery:
+#            delegated: auto|yes|no
+#
 scp:
     sbi:
       - addr: 127.0.1.10
