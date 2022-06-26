@@ -585,6 +585,43 @@ int ogs_sbi_context_parse_config(
                                 }
                             } else if (!strcmp(sbi_key, "advertise")) {
                                 /* Nothing in client */
+                            } else if (!strcmp(sbi_key, "discovery")) {
+                                ogs_yaml_iter_t discovery_iter;
+                                yaml_node_t *node = yaml_document_get_node(
+                                        document, sbi_iter.pair->value);
+                                ogs_assert(node);
+                                ogs_assert(node->type == YAML_MAPPING_NODE);
+                                ogs_yaml_iter_recurse(&sbi_iter,
+                                        &discovery_iter);
+                                while (ogs_yaml_iter_next(&discovery_iter)) {
+                                    const char *discovery_key =
+                                        ogs_yaml_iter_key(&discovery_iter);
+                                    ogs_assert(discovery_key);
+                                    if (!strcmp(discovery_key, "delegated")) {
+                                        yaml_node_t *discovery_node =
+                                            yaml_document_get_node(document,
+                                                    discovery_iter.pair->value);
+                                        ogs_assert(discovery_node->type ==
+                                                YAML_SCALAR_NODE);
+                                        const char* delegated =
+                                            ogs_yaml_iter_value(
+                                                    &discovery_iter);
+                                        if (!strcmp(delegated, "auto"))
+                                            self.discovery_config.delegated =
+                                            OGS_SBI_DISCOVERY_DELEGATED_AUTO;
+                                        else if (!strcmp(delegated, "yes"))
+                                            self.discovery_config.delegated =
+                                            OGS_SBI_DISCOVERY_DELEGATED_YES;
+                                        else if (!strcmp(delegated, "no"))
+                                            self.discovery_config.delegated =
+                                            OGS_SBI_DISCOVERY_DELEGATED_NO;
+                                        else
+                                            ogs_warn("unknown 'delegated' "
+                                                "value `%s`", delegated);
+                                    } else
+                                        ogs_warn("unknown key `%s`",
+                                                discovery_key);
+                                }
                             } else
                                 ogs_warn("unknown key `%s`", sbi_key);
                         }

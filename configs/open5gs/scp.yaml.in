@@ -91,14 +91,10 @@ logger:
 #  <Next hop SCP>
 #
 #  o Next hop SCP Server(https://127.0.1.11:7777)
-#  scp:
+#  next_scp:
 #      sbi:
-#        - addr: 127.0.1.10
+#        - addr: 127.0.1.11
 #          port: 7777
-#      next:
-#          sbi:
-#            - addr: 127.0.1.11
-#              port: 7777
 #
 #  <Discovery>
 #
@@ -114,16 +110,12 @@ logger:
 #    o no:   Don't use next-hop SCP server.
 #            => App fails if no NRF available.
 #
-#  scp:
+#  next_scp:
 #      sbi:
-#        - addr: 127.0.1.10
+#        - addr: 127.0.1.11
 #          port: 7777
-#      next:
-#          sbi:
-#            - addr: 127.0.1.11
-#              port: 7777
-#          discovery:
-#            delegated: auto|yes|no
+#      discovery:
+#        delegated: auto|yes|no
 #
 scp:
     sbi:
