@@ -57,7 +57,8 @@ typedef struct ogs_sbi_context_s {
     ogs_list_t nf_instance_list;
     ogs_list_t subscription_list;
 
-    ogs_sbi_nf_instance_t *nf_instance; /* SELF NF Instance */
+    ogs_sbi_nf_instance_t *nf_instance;     /* SELF NF Instance */
+    ogs_sbi_nf_instance_t *scp_instance;    /* SCP Instance */
 
     const char *content_encoding;
 

@@ -503,7 +503,7 @@ int ogs_sbi_context_parse_config(
                     ogs_yaml_iter_t sbi_array, sbi_iter;
                     ogs_yaml_iter_recurse(&scp_iter, &sbi_array);
                     do {
-                        ogs_sbi_nf_instance_t *nf_instance = NULL;
+                        ogs_sbi_nf_instance_t *scp_instance = NULL;
                         ogs_sbi_client_t *client = NULL;
                         ogs_sockaddr_t *addr = NULL;
                         int family = AF_UNSPEC;
@@ -643,12 +643,13 @@ int ogs_sbi_context_parse_config(
                         client = ogs_sbi_client_add(addr);
                         ogs_assert(client);
 
-                        nf_instance = ogs_sbi_nf_instance_add();
-                        ogs_assert(nf_instance);
+                        ogs_sbi_self()->scp_instance =
+                            scp_instance = ogs_sbi_nf_instance_add();
+                        ogs_assert(scp_instance);
                         ogs_sbi_nf_instance_set_type(
-                                nf_instance, OpenAPI_nf_type_SCP);
+                                scp_instance, OpenAPI_nf_type_SCP);
 
-                        OGS_SBI_SETUP_CLIENT(nf_instance, client);
+                        OGS_SBI_SETUP_CLIENT(scp_instance, client);
 
                         if (key) client->tls.key = key;
                         if (pem) client->tls.pem = pem;

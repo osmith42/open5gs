@@ -93,10 +93,9 @@ int amf_sbi_open(void)
 
     /* Initialize NRF NF Instance */
     ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
-        ogs_sbi_client_t *client = NULL;
+        if (NF_INSTANCE_IS_NRF(nf_instance)) {
+            ogs_sbi_client_t *client = NULL;
 
-        switch (nf_instance->nf_type) {
-        case OpenAPI_nf_type_NRF:
             /* Client callback is only used when NF sends to NRF */
             client = nf_instance->client;
             ogs_assert(client);
@@ -105,11 +104,6 @@ int amf_sbi_open(void)
             /* NFRegister is sent and the response is received
              * by the above client callback. */
             amf_nf_fsm_init(nf_instance);
-            break;
-        case OpenAPI_nf_type_SCP:
-            break;
-        default:
-            break;
         }
     }
 
