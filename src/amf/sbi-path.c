@@ -92,19 +92,18 @@ int amf_sbi_open(void)
     ogs_sbi_nf_service_add_allowed_nf_type(service, OpenAPI_nf_type_SMF);
 
     /* Initialize NRF NF Instance */
-    ogs_list_for_each(&ogs_sbi_self()->nf_instance_list, nf_instance) {
-        if (NF_INSTANCE_IS_NRF(nf_instance)) {
-            ogs_sbi_client_t *client = NULL;
+    nf_instance = ogs_sbi_self()->nrf_instance;
+    if (nf_instance) {
+        ogs_sbi_client_t *client = NULL;
 
-            /* Client callback is only used when NF sends to NRF */
-            client = nf_instance->client;
-            ogs_assert(client);
-            client->cb = client_cb;
+        /* Client callback is only used when NF sends to NRF */
+        client = nf_instance->client;
+        ogs_assert(client);
+        client->cb = client_cb;
 
-            /* NFRegister is sent and the response is received
-             * by the above client callback. */
-            amf_nf_fsm_init(nf_instance);
-        }
+        /* NFRegister is sent and the response is received
+         * by the above client callback. */
+        amf_nf_fsm_init(nf_instance);
     }
 
     return OGS_OK;

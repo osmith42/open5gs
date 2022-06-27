@@ -31,6 +31,18 @@ static OGS_POOL(subscription_pool, ogs_sbi_subscription_t);
 static OGS_POOL(smf_info_pool, ogs_sbi_smf_info_t);
 static OGS_POOL(nf_info_pool, ogs_sbi_nf_info_t);
 
+typedef enum {
+    OGS_SBI_DISCOVERY_DELEGATED_AUTO = 0,
+    OGS_SBI_DISCOVERY_DELEGATED_YES,
+    OGS_SBI_DISCOVERY_DELEGATED_NO,
+} ogs_sbi_discovery_delegated_mode;
+
+typedef struct ogs_sbi_discovery_config_s {
+    ogs_sbi_discovery_delegated_mode delegated;
+} ogs_sbi_discovery_config_t;
+
+static ogs_sbi_discovery_config_t discovery_config;
+
 void ogs_sbi_context_init(void)
 {
     char nf_instance_id[OGS_UUID_FORMATTED_LENGTH + 1];
@@ -58,6 +70,10 @@ void ogs_sbi_context_init(void)
     ogs_pool_init(&smf_info_pool, ogs_app()->pool.nf);
 
     ogs_pool_init(&nf_info_pool, ogs_app()->pool.nf * OGS_MAX_NUM_OF_NF_INFO);
+
+    /* Discovery Config */
+    memset(&discovery_config, 0, sizeof(discovery_config));
+    discovery_config.delegated = OGS_SBI_DISCOVERY_DELEGATED_AUTO;
 
     /* Add SELF NF instance */
     self.nf_instance = ogs_sbi_nf_instance_add();
@@ -111,7 +127,8 @@ static int ogs_sbi_context_prepare(void)
     return OGS_OK;
 }
 
-static int ogs_sbi_context_validation(const char *local)
+static int ogs_sbi_context_validation(
+        const char *local, const char *nrf, const char *scp)
 {
     /* If SMF is only used in 4G EPC, no SBI interface is required.  */
     if (strcmp(local, "smf") != 0 &&
@@ -120,7 +137,45 @@ static int ogs_sbi_context_validation(const char *local)
         return OGS_ERROR;
     }
 
+    /* If NRF NF instance, skip to check Delegated Discovery */
+#if 0
+    if (strcmp(local, "nrf") != 0) {
+        switch (discovery_config.delegated) {
+        case OGS_SBI_DISCOVERY_DELEGATED_AUTO:
+            if (ogs_sbi_self()->nrf_instance == NULL &&
+                ogs_sbi_self()->scp_instance == NULL) {
+                ogs_error("DELEGATED_AUTO - Both NRF and %s are unavailable",
+                        strcmp(scp, "next_scp") == 0 ? "Next-hop SCP" : "SCP");
+                return OGS_ERROR;
+            }
+            break;
+        case OGS_SBI_DISCOVERY_DELEGATED_YES:
+            if (ogs_sbi_self()->scp_instance == NULL) {
+                ogs_error("DELEGATED_YES - no %s available",
+                        strcmp(scp, "next_scp") == 0 ? "Next-hop SCP" : "SCP");
+                return OGS_ERROR;
+            }
+            break;
+        case OGS_SBI_DISCOVERY_DELEGATED_NO:
+            if (ogs_sbi_self()->nrf_instance == NULL) {
+                ogs_error("DELEGATED_NO - no NRF available");
+                return OGS_ERROR;
+            }
+            break;
+        default:
+            ogs_fatal("Invalid dicovery-config delegated [%d]",
+                        discovery_config.delegated);
+            ogs_assert_if_reached();
+        }
+    }
+#endif
+
     return OGS_OK;
+}
+
+ogs_sbi_nf_instance_t *ogs_sbi_scp_instance(void)
+{
+    return NULL;
 }
 
 int ogs_sbi_context_parse_config(
@@ -374,7 +429,7 @@ int ogs_sbi_context_parse_config(
                     ogs_yaml_iter_t sbi_array, sbi_iter;
                     ogs_yaml_iter_recurse(&nrf_iter, &sbi_array);
                     do {
-                        ogs_sbi_nf_instance_t *nf_instance = NULL;
+                        ogs_sbi_nf_instance_t *nrf_instance = NULL;
                         ogs_sbi_client_t *client = NULL;
                         ogs_sockaddr_t *addr = NULL;
                         int family = AF_UNSPEC;
@@ -477,12 +532,13 @@ int ogs_sbi_context_parse_config(
                         client = ogs_sbi_client_add(addr);
                         ogs_assert(client);
 
-                        nf_instance = ogs_sbi_nf_instance_add();
-                        ogs_assert(nf_instance);
+                        ogs_sbi_self()->nrf_instance =
+                            nrf_instance = ogs_sbi_nf_instance_add();
+                        ogs_assert(nrf_instance);
                         ogs_sbi_nf_instance_set_type(
-                                nf_instance, OpenAPI_nf_type_NRF);
+                                nrf_instance, OpenAPI_nf_type_NRF);
 
-                        OGS_SBI_SETUP_CLIENT(nf_instance, client);
+                        OGS_SBI_SETUP_CLIENT(nrf_instance, client);
 
                         if (key) client->tls.key = key;
                         if (pem) client->tls.pem = pem;
@@ -585,43 +641,6 @@ int ogs_sbi_context_parse_config(
                                 }
                             } else if (!strcmp(sbi_key, "advertise")) {
                                 /* Nothing in client */
-                            } else if (!strcmp(sbi_key, "discovery")) {
-                                ogs_yaml_iter_t discovery_iter;
-                                yaml_node_t *node = yaml_document_get_node(
-                                        document, sbi_iter.pair->value);
-                                ogs_assert(node);
-                                ogs_assert(node->type == YAML_MAPPING_NODE);
-                                ogs_yaml_iter_recurse(&sbi_iter,
-                                        &discovery_iter);
-                                while (ogs_yaml_iter_next(&discovery_iter)) {
-                                    const char *discovery_key =
-                                        ogs_yaml_iter_key(&discovery_iter);
-                                    ogs_assert(discovery_key);
-                                    if (!strcmp(discovery_key, "delegated")) {
-                                        yaml_node_t *discovery_node =
-                                            yaml_document_get_node(document,
-                                                    discovery_iter.pair->value);
-                                        ogs_assert(discovery_node->type ==
-                                                YAML_SCALAR_NODE);
-                                        const char* delegated =
-                                            ogs_yaml_iter_value(
-                                                    &discovery_iter);
-                                        if (!strcmp(delegated, "auto"))
-                                            self.discovery_config.delegated =
-                                            OGS_SBI_DISCOVERY_DELEGATED_AUTO;
-                                        else if (!strcmp(delegated, "yes"))
-                                            self.discovery_config.delegated =
-                                            OGS_SBI_DISCOVERY_DELEGATED_YES;
-                                        else if (!strcmp(delegated, "no"))
-                                            self.discovery_config.delegated =
-                                            OGS_SBI_DISCOVERY_DELEGATED_NO;
-                                        else
-                                            ogs_warn("unknown 'delegated' "
-                                                "value `%s`", delegated);
-                                    } else
-                                        ogs_warn("unknown key `%s`",
-                                                discovery_key);
-                                }
                             } else
                                 ogs_warn("unknown key `%s`", sbi_key);
                         }
@@ -658,12 +677,47 @@ int ogs_sbi_context_parse_config(
 
                     } while (ogs_yaml_iter_type(&sbi_array) ==
                             YAML_SEQUENCE_NODE);
+                } else if (!strcmp(scp_key, "discovery")) {
+                    ogs_yaml_iter_t discovery_iter;
+                    yaml_node_t *node = yaml_document_get_node(
+                            document, scp_iter.pair->value);
+                    ogs_assert(node);
+                    ogs_assert(node->type == YAML_MAPPING_NODE);
+                    ogs_yaml_iter_recurse(&scp_iter, &discovery_iter);
+                    while (ogs_yaml_iter_next(&discovery_iter)) {
+                        const char *discovery_key =
+                            ogs_yaml_iter_key(&discovery_iter);
+                        ogs_assert(discovery_key);
+                        if (!strcmp(discovery_key, "delegated")) {
+                            yaml_node_t *discovery_node =
+                                yaml_document_get_node(document,
+                                        discovery_iter.pair->value);
+                            ogs_assert(discovery_node->type ==
+                                    YAML_SCALAR_NODE);
+                            const char* delegated =
+                                ogs_yaml_iter_value(&discovery_iter);
+                            if (!strcmp(delegated, "auto"))
+                                discovery_config.delegated =
+                                    OGS_SBI_DISCOVERY_DELEGATED_AUTO;
+                            else if (!strcmp(delegated, "yes"))
+                                discovery_config.delegated =
+                                    OGS_SBI_DISCOVERY_DELEGATED_YES;
+                            else if (!strcmp(delegated, "no"))
+                                discovery_config.delegated =
+                                    OGS_SBI_DISCOVERY_DELEGATED_NO;
+                            else
+                                ogs_warn("unknown 'delegated' value `%s`",
+                                        delegated);
+                        } else
+                            ogs_warn("unknown key `%s`",
+                                    discovery_key);
+                    }
                 }
             }
         }
     }
 
-    rv = ogs_sbi_context_validation(local);
+    rv = ogs_sbi_context_validation(local, nrf, scp);
     if (rv != OGS_OK) return rv;
 
     return OGS_OK;
