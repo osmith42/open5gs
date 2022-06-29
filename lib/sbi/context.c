@@ -137,12 +137,12 @@ static int ogs_sbi_context_validation(
         return OGS_ERROR;
     }
 
-    /* If NRF NF instance, skip to check Delegated Discovery */
-#if 0
-    if (strcmp(local, "nrf") != 0) {
+    if (context_initialized == 1) {
         switch (discovery_config.delegated) {
         case OGS_SBI_DISCOVERY_DELEGATED_AUTO:
-            if (ogs_sbi_self()->nrf_instance == NULL &&
+            if (strcmp(local, "nrf") != 0 && /* Skip NRF */
+                strcmp(local, "smf") != 0 && /* Skip SMF since SMF can run 4G */
+                ogs_sbi_self()->nrf_instance == NULL &&
                 ogs_sbi_self()->scp_instance == NULL) {
                 ogs_error("DELEGATED_AUTO - Both NRF and %s are unavailable",
                         strcmp(scp, "next_scp") == 0 ? "Next-hop SCP" : "SCP");
@@ -168,7 +168,6 @@ static int ogs_sbi_context_validation(
             ogs_assert_if_reached();
         }
     }
-#endif
 
     return OGS_OK;
 }
