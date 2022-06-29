@@ -130,6 +130,7 @@ bool ogs_nnrf_nfm_send_nf_register(
 {
     ogs_sbi_request_t *request = NULL;
     ogs_sbi_client_t *client = NULL;
+    ogs_sbi_nf_instance_t *scp_instance = NULL;
 
     ogs_assert(nf_instance);
     ogs_assert(build);
@@ -137,8 +138,20 @@ bool ogs_nnrf_nfm_send_nf_register(
     request = (*build)();
     ogs_expect_or_return_val(request, false);
 
-    client = nf_instance->client;
-    ogs_assert(client);
+    if (ogs_sbi_self()->discovery_config.delegated ==
+            OGS_SBI_DISCOVERY_DELEGATED_AUTO ||
+        ogs_sbi_self()->discovery_config.delegated ==
+            OGS_SBI_DISCOVERY_DELEGATED_YES) {
+        scp_instance = ogs_sbi_self()->scp_instance;
+    }
+
+    if (scp_instance) {
+        client = scp_instance->client;
+        ogs_assert(client);
+    } else {
+        client = nf_instance->client;
+        ogs_assert(client);
+    }
 
     return ogs_sbi_client_send_request(
             client, client->cb, request, nf_instance);

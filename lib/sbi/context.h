@@ -36,7 +36,19 @@ typedef struct ogs_sbi_client_s ogs_sbi_client_t;
 typedef struct ogs_sbi_smf_info_s ogs_sbi_smf_info_t;
 typedef struct ogs_sbi_nf_instance_s ogs_sbi_nf_instance_t;
 
+typedef enum {
+    OGS_SBI_DISCOVERY_DELEGATED_AUTO = 0,
+    OGS_SBI_DISCOVERY_DELEGATED_YES,
+    OGS_SBI_DISCOVERY_DELEGATED_NO,
+} ogs_sbi_discovery_delegated_mode;
+
+typedef struct ogs_sbi_discovery_config_s {
+    ogs_sbi_discovery_delegated_mode delegated;
+} ogs_sbi_discovery_config_t;
+
 typedef struct ogs_sbi_context_s {
+    ogs_sbi_discovery_config_t discovery_config; /* SCP Discovery Delegated */
+
     uint32_t sbi_port;                      /* SBI local port */
 
     ogs_list_t server_list;
@@ -52,6 +64,7 @@ typedef struct ogs_sbi_context_s {
     ogs_sbi_nf_instance_t *scp_instance;    /* SCP Instance */
 
     const char *content_encoding;
+
 } ogs_sbi_context_t;
 
 typedef struct ogs_sbi_nf_instance_s {

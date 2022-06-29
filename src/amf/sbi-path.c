@@ -91,6 +91,17 @@ int amf_sbi_open(void)
             (char*)OGS_SBI_API_V1_0_0, NULL);
     ogs_sbi_nf_service_add_allowed_nf_type(service, OpenAPI_nf_type_SMF);
 
+    /* Initialize SCP NF Instance */
+    nf_instance = ogs_sbi_self()->scp_instance;
+    if (nf_instance) {
+        ogs_sbi_client_t *client = NULL;
+
+        /* Client callback is only used when NF sends to SCP */
+        client = nf_instance->client;
+        ogs_assert(client);
+        client->cb = client_cb;
+    }
+
     /* Initialize NRF NF Instance */
     nf_instance = ogs_sbi_self()->nrf_instance;
     if (nf_instance) {

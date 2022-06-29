@@ -31,18 +31,6 @@ static OGS_POOL(subscription_pool, ogs_sbi_subscription_t);
 static OGS_POOL(smf_info_pool, ogs_sbi_smf_info_t);
 static OGS_POOL(nf_info_pool, ogs_sbi_nf_info_t);
 
-typedef enum {
-    OGS_SBI_DISCOVERY_DELEGATED_AUTO = 0,
-    OGS_SBI_DISCOVERY_DELEGATED_YES,
-    OGS_SBI_DISCOVERY_DELEGATED_NO,
-} ogs_sbi_discovery_delegated_mode;
-
-typedef struct ogs_sbi_discovery_config_s {
-    ogs_sbi_discovery_delegated_mode delegated;
-} ogs_sbi_discovery_config_t;
-
-static ogs_sbi_discovery_config_t discovery_config;
-
 void ogs_sbi_context_init(void)
 {
     char nf_instance_id[OGS_UUID_FORMATTED_LENGTH + 1];
@@ -70,10 +58,6 @@ void ogs_sbi_context_init(void)
     ogs_pool_init(&smf_info_pool, ogs_app()->pool.nf);
 
     ogs_pool_init(&nf_info_pool, ogs_app()->pool.nf * OGS_MAX_NUM_OF_NF_INFO);
-
-    /* Discovery Config */
-    memset(&discovery_config, 0, sizeof(discovery_config));
-    discovery_config.delegated = OGS_SBI_DISCOVERY_DELEGATED_AUTO;
 
     /* Add SELF NF instance */
     self.nf_instance = ogs_sbi_nf_instance_add();
@@ -138,7 +122,7 @@ static int ogs_sbi_context_validation(
     }
 
     if (context_initialized == 1) {
-        switch (discovery_config.delegated) {
+        switch (self.discovery_config.delegated) {
         case OGS_SBI_DISCOVERY_DELEGATED_AUTO:
             if (strcmp(local, "nrf") != 0 && /* Skip NRF */
                 strcmp(local, "smf") != 0 && /* Skip SMF since SMF can run 4G */
@@ -164,7 +148,7 @@ static int ogs_sbi_context_validation(
             break;
         default:
             ogs_fatal("Invalid dicovery-config delegated [%d]",
-                        discovery_config.delegated);
+                        self.discovery_config.delegated);
             ogs_assert_if_reached();
         }
     }
@@ -696,13 +680,13 @@ int ogs_sbi_context_parse_config(
                             const char* delegated =
                                 ogs_yaml_iter_value(&discovery_iter);
                             if (!strcmp(delegated, "auto"))
-                                discovery_config.delegated =
+                                self.discovery_config.delegated =
                                     OGS_SBI_DISCOVERY_DELEGATED_AUTO;
                             else if (!strcmp(delegated, "yes"))
-                                discovery_config.delegated =
+                                self.discovery_config.delegated =
                                     OGS_SBI_DISCOVERY_DELEGATED_YES;
                             else if (!strcmp(delegated, "no"))
-                                discovery_config.delegated =
+                                self.discovery_config.delegated =
                                     OGS_SBI_DISCOVERY_DELEGATED_NO;
                             else
                                 ogs_warn("unknown 'delegated' value `%s`",
