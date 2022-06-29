@@ -139,15 +139,30 @@ bool ogs_nnrf_nfm_send_nf_register(
     ogs_expect_or_return_val(request, false);
 
     if (ogs_sbi_self()->discovery_config.delegated ==
-            OGS_SBI_DISCOVERY_DELEGATED_AUTO ||
-        ogs_sbi_self()->discovery_config.delegated ==
+            OGS_SBI_DISCOVERY_DELEGATED_AUTO) {
+        scp_instance = ogs_sbi_self()->scp_instance;
+    } else if (ogs_sbi_self()->discovery_config.delegated ==
             OGS_SBI_DISCOVERY_DELEGATED_YES) {
         scp_instance = ogs_sbi_self()->scp_instance;
+        ogs_assert(scp_instance);
     }
 
     if (scp_instance) {
+        ogs_sbi_client_t *nrf_client = NULL;
+        char *apiroot = NULL;
+
+        nrf_client = nf_instance->client;
+        ogs_assert(nrf_client);
+
+        apiroot = ogs_sbi_client_apiroot(nrf_client);
+        ogs_assert(apiroot);
+
         client = scp_instance->client;
         ogs_assert(client);
+
+        ogs_sbi_header_set(request->http.headers,
+                OGS_SBI_CUSTOM_TARGET_APIROOT, apiroot);
+        ogs_free(apiroot);
     } else {
         client = nf_instance->client;
         ogs_assert(client);

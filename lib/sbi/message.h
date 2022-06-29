@@ -274,6 +274,20 @@ extern "C" {
 #define OGS_SBI_APPLICATION_5GNAS_TYPE              "vnd.3gpp.5gnas"
 #define OGS_SBI_APPLICATION_NGAP_TYPE               "vnd.3gpp.ngap"
 
+#define OGS_SBI_CUSTOM_MESSAGE_PRIORITY         "3gpp-Sbi-Message-Priority"
+#define OGS_SBI_CUSTOM_CALLBACK                 "3gpp-Sbi-Callback"
+#define OGS_SBI_CUSTOM_TARGET_APIROOT           "3gpp-Sbi-Target-apiRoot"
+#define OGS_SBI_CUSTOM_ROUTING_BINDING          "3gpp-Sbi-Routing-Binding"
+#define OGS_SBI_CUSTOM_BINDING                  "3gpp-Sbi-Binding"
+#define OGS_SBI_CUSTOM_DISCOVERY                "3gpp-Sbi-Discovery-"
+#define OGS_SBI_CUSTOM_PRODUCER_ID              "3gpp-Sbi-Producer-Id"
+#define OGS_SBI_CUSTOM_OCI                      "3gpp-Sbi-Oci"
+#define OGS_SBI_CUSTOM_CLIENT_CREDENTIALS       "3gpp-Sbi-Client-Credentials"
+#define OGS_SBI_CUSTOM_NRF_URI                  "3gpp-Sbi-Nrf-Uri"
+#define OGS_SBI_CUSTOM_TARGET_NF_ID             "3gpp-Sbi-Target-Nf-Id"
+#define OGS_SBI_CUSTOM_ACCESS_SCOPE             "3gpp-Sbi-Access-Scope"
+#define OGS_SBI_CUSTOM_ACCESS_TOKEN             "3gpp-Sbi-Access-Token"
+
 #define OGS_SBI_CONTENT_JSON_TYPE                   \
     OGS_SBI_APPLICATION_TYPE "/" OGS_SBI_APPLICATION_JSON_TYPE
 #define OGS_SBI_CONTENT_PROBLEM_TYPE                \

@@ -113,7 +113,7 @@ static void regenerate_all_timer_duration(void)
         ogs_max(ogs_time_from_sec(3),
             self.time.message.sbi.client_wait_duration + ogs_time_from_sec(1));
     self.time.message.sbi.nf_register_interval_in_exception =
-                ogs_time_from_msec(300);
+                ogs_time_from_sec(2);
 
 #define PFCP_N1_RESPONSE_RETRY_COUNT  3
     self.time.message.pfcp.n1_response_rcount = PFCP_N1_RESPONSE_RETRY_COUNT;

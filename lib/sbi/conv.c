@@ -29,7 +29,6 @@ char *ogs_uridup(bool https, ogs_sockaddr_t *addr, ogs_sbi_header_t *h)
     char *hostname = NULL;
 
     ogs_assert(addr);
-    ogs_assert(h);
 
     p = uri;
     last = uri + OGS_HUGE_LEN;
@@ -61,16 +60,18 @@ char *ogs_uridup(bool https, ogs_sockaddr_t *addr, ogs_sbi_header_t *h)
     }
 
     /* API */
-    ogs_assert(h->service.name);
-    p = ogs_slprintf(p, last, "/%s", h->service.name);
-    ogs_assert(h->api.version);
-    p = ogs_slprintf(p, last, "/%s", h->api.version);
+    if (h) {
+        ogs_assert(h->service.name);
+        p = ogs_slprintf(p, last, "/%s", h->service.name);
+        ogs_assert(h->api.version);
+        p = ogs_slprintf(p, last, "/%s", h->api.version);
 
-    /* Resource */
-    ogs_assert(h->resource.component[0]);
-    for (i = 0; i < OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT &&
-                        h->resource.component[i]; i++)
-        p = ogs_slprintf(p, last, "/%s", h->resource.component[i]);
+        /* Resource */
+        ogs_assert(h->resource.component[0]);
+        for (i = 0; i < OGS_SBI_MAX_NUM_OF_RESOURCE_COMPONENT &&
+                            h->resource.component[i]; i++)
+            p = ogs_slprintf(p, last, "/%s", h->resource.component[i]);
+    }
 
     return ogs_strdup(uri);
 }
@@ -95,17 +96,29 @@ char *ogs_sbi_server_uri(ogs_sbi_server_t *server, ogs_sbi_header_t *h)
     return ogs_uridup(https, advertise, h);
 }
 
-char *ogs_sbi_client_uri(ogs_sbi_client_t *client, ogs_sbi_header_t *h)
+static char *_ogs_sbi_client_uri(ogs_sbi_client_t *client, ogs_sbi_header_t *h)
 {
     bool https = false;
 
     ogs_assert(client);
-    ogs_assert(h);
 
     if (client->tls.key && client->tls.pem)
         https = true;
 
     return ogs_uridup(https, client->node.addr, h);
+}
+
+char *ogs_sbi_client_apiroot(ogs_sbi_client_t *client)
+{
+    return _ogs_sbi_client_uri(client, NULL);
+}
+
+char *ogs_sbi_client_uri(ogs_sbi_client_t *client, ogs_sbi_header_t *h)
+{
+    ogs_assert(client);
+    ogs_assert(h);
+
+    return _ogs_sbi_client_uri(client, h);
 }
 
 /**
