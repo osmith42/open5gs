@@ -284,6 +284,7 @@ int sgwc_pfcp_send_session_modification_request(
         xact->gtpbuf = ogs_pkbuf_copy(gtpbuf);
         ogs_expect_or_return_val(xact->gtpbuf, OGS_ERROR);
     }
+    xact->local_seid = sess->sgwc_sxa_seid;
 
     ogs_list_for_each(&sess->bearer_list, bearer)
         ogs_list_add(&xact->bearer_to_modify_list, &bearer->to_modify_node);

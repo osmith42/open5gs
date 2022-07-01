@@ -1082,6 +1082,13 @@ void mme_s11_handle_release_access_bearers_response(
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect_or_return(rv == OGS_OK);
 
+    /***********************
+     * Check MME-UE Context
+     ***********************/
+    if (!mme_ue_from_teid) {
+        ogs_error("No Context in TEID [ACTION:%d]", action);
+    }
+
     /********************
      * Check Cause Value
      ********************/
@@ -1091,7 +1098,7 @@ void mme_s11_handle_release_access_bearers_response(
 
         cause_value = cause->value;
         if (cause_value != OGS_GTP2_CAUSE_REQUEST_ACCEPTED)
-            ogs_error("GTP Failed [CAUSE:%d]", cause_value);
+            ogs_error("GTP Failed [CAUSE:%d, ACTION:%d]", cause_value, action);
     }
 
     /********************

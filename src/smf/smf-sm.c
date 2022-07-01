@@ -179,7 +179,11 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
             break;
         case OGS_GTP2_DELETE_BEARER_RESPONSE_TYPE:
             if (!gtp2_message.h.teid_presence) ogs_error("No TEID");
-            ogs_assert(sess);
+            if (!sess) {
+                /* TODO: NACK the message */
+                ogs_error("TODO: NACK the message");
+                break;
+            }
             e->sess = sess;
             ogs_fsm_dispatch(&sess->sm, e);
             break;
